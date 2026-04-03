@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/reminders",
+      "schedule": "17 * * * *"
+    },
+    {
+      "path": "/api/substack/sync",
+      "schedule": "23 4 * * *"
+    }
+  ]
+}

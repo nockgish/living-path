@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  /* Color tokens — dark mystical palette (warm brown, near-black) */
+  --color-ink: #050302;
+  --color-night: #0d0906;
+  --color-night-2: #140e09;
+  --color-night-3: #1c140d;
+  --color-veil: #2a1d12;
+  --color-mist: #7a6550;
+  --color-moon: #d8cbb4;
+  --color-pearl: #f0e7d4;
+  --color-gold: #c9a227;
+  --color-gold-soft: #e0c266;
+  --color-gold-deep: #8a6f15;
+  --color-amber: #d97706;
+  --color-rose: #b85c8a;
+
+  /* Fonts */
+  --font-serif: var(--font-cormorant), Cormorant Garamond, "Cormorant Garamond", Georgia, serif;
+  --font-sans: var(--font-inter), Inter, ui-sans-serif, system-ui, sans-serif;
+
+  /* Spacing scale extension */
+  --spacing-section: 8rem;
+}
+
+/* Base styles */
+:root {
+  color-scheme: dark;
+}
+
+html, body {
+  background-color: var(--color-night);
+  color: var(--color-pearl);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201, 162, 39, 0.04), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(217, 119, 6, 0.03), transparent),
+    linear-gradient(180deg, #100b07 0%, #0a0704 50%, #050302 100%);
+  background-attachment: fixed;
+}
+
+/* Smooth anchor scrolling for landing nav */
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+
+::selection { background: var(--color-gold); color: var(--color-ink); }
+
+/* Subtle starfield (decorative; turned off via prefers-reduced-motion) */
+.starfield::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.5) 50%, transparent),
+    radial-gradient(1px 1px at 80% 20%, rgba(255,255,255,0.4) 50%, transparent),
+    radial-gradient(1px 1px at 40% 70%, rgba(255,255,255,0.3) 50%, transparent),
+    radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.4) 50%, transparent),
+    radial-gradient(1.5px 1.5px at 90% 60%, rgba(255,255,255,0.5) 50%, transparent),
+    radial-gradient(1px 1px at 10% 90%, rgba(255,255,255,0.3) 50%, transparent);
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Prose styling for essays + page builder text */
+.prose-living {
+  color: var(--color-moon);
+  font-size: 1.05rem;
+  line-height: 1.85;
+}
+.prose-living h1, .prose-living h2, .prose-living h3 {
+  font-family: var(--font-serif);
+  color: var(--color-pearl);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+.prose-living h2 { font-size: 2rem; margin-top: 2.5rem; margin-bottom: 1rem; }
+.prose-living h3 { font-size: 1.5rem; margin-top: 2rem; margin-bottom: 0.75rem; }
+.prose-living p { margin-bottom: 1.25rem; }
+.prose-living a { color: var(--color-gold-soft); text-decoration: underline; text-underline-offset: 4px; }
+.prose-living a:hover { color: var(--color-gold); }
+.prose-living blockquote {
+  border-left: 2px solid var(--color-gold);
+  padding-left: 1.5rem;
+  font-style: italic;
+  color: var(--color-pearl);
+  margin: 2rem 0;
+}
+.prose-living img { border-radius: 0.5rem; margin: 2rem auto; }
+.prose-living ul, .prose-living ol { margin: 1.25rem 0 1.25rem 1.5rem; }
+.prose-living li { margin-bottom: 0.5rem; }
+.prose-living code {
+  background: var(--color-night-3);
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.9em;
+}

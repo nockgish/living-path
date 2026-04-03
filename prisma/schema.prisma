@@ -1,0 +1,245 @@
+// Living Path — Prisma schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================
+// Auth.js standard models + role
+// =============================================================
+
+enum Role {
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+model User {
+  id               String     @id @default(cuid())
+  email            String     @unique
+  name             String?
+  image            String?
+  emailVerified    DateTime?
+  role             Role       @default(MEMBER)
+  stripeCustomerId String?    @unique
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  accounts    Account[]
+  sessions    Session[]
+  membership  Membership?
+  rsvps       RSVP[]
+  purchases   Purchase[]
+  pagesEdited Page[]      @relation("PageUpdatedBy")
+  essays      Essay[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// =============================================================
+// Memberships & purchases
+// =============================================================
+
+model Membership {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSubscriptionId String   @unique
+  stripePriceId        String
+  status               String
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model Purchase {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stripeSessionId String   @unique
+  amount          Int
+  currency        String   @default("usd")
+  itemType        String
+  itemId          String?
+  status          String   @default("paid")
+  createdAt       DateTime @default(now())
+
+  @@index([userId])
+  @@index([itemId])
+}
+
+// =============================================================
+// Calendar
+// =============================================================
+
+model ClassEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String   @db.Text
+  startsAt    DateTime
+  endsAt      DateTime
+  isWorkshop  Boolean  @default(false)
+  priceCents  Int?
+  capacity    Int?
+  location    String?
+  zoomUrl     String?
+  recurring   String?
+  imageUrl    String?
+  published   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  rsvps RSVP[]
+
+  @@index([startsAt])
+}
+
+model RSVP {
+  id           String     @id @default(cuid())
+  userId       String
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classEventId String
+  classEvent   ClassEvent @relation(fields: [classEventId], references: [id], onDelete: Cascade)
+  occurrence   DateTime?
+  reminderSent Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([userId, classEventId, occurrence])
+  @@index([classEventId])
+}
+
+// =============================================================
+// Newsletter subscribers
+// =============================================================
+
+model Subscriber {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  name       String?
+  status     String   @default("active")
+  unsubToken String   @unique @default(cuid())
+  source     String?
+  createdAt  DateTime @default(now())
+}
+
+model Broadcast {
+  id          String    @id @default(cuid())
+  subject     String
+  bodyHtml    String    @db.Text
+  bodyText    String    @db.Text
+  status      String    @default("draft")
+  sentAt      DateTime?
+  sentCount   Int       @default(0)
+  createdAt   DateTime  @default(now())
+}
+
+// =============================================================
+// Editorial content
+// =============================================================
+
+model Essay {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  excerpt      String    @db.Text
+  contentHtml  String    @db.Text
+  coverImage   String?
+  publishedAt  DateTime?
+  source       String    @default("native")
+  substackUrl  String?   @unique
+  authorId     String?
+  author       User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([publishedAt])
+}
+
+// =============================================================
+// Page builder
+// =============================================================
+
+model Page {
+  id          String    @id @default(cuid())
+  slug        String    @unique
+  title       String
+  description String?
+  blocks      Json
+  status      String    @default("draft")
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  updatedById String?
+  updatedBy   User?     @relation("PageUpdatedBy", fields: [updatedById], references: [id], onDelete: SetNull)
+}
+
+// =============================================================
+// Site settings (single row)
+// =============================================================
+
+model SiteSettings {
+  id            String  @id @default("singleton")
+  heroTitle     String
+  heroSubtitle  String
+  heroTagline   String
+  lineageBody   String  @db.Text
+  instagramUrl  String?
+  substackUrl   String?
+  youtubeUrl    String?
+  contactEmail  String?
+  updatedAt     DateTime @updatedAt
+}
+
+// =============================================================
+// Contact form messages
+// =============================================================
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
